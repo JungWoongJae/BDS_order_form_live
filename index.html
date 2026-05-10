@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>변덕순 주문 접수 V2</title>
+    <link rel="icon" href="data:,">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+        background:
+          linear-gradient(180deg, rgba(255, 251, 235, 0.98), rgba(250, 250, 249, 1) 36%),
+          #fbfaf8;
+      }
+
+      .page-shell {
+        background-image:
+          linear-gradient(rgba(146, 64, 14, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(6, 78, 59, 0.045) 1px, transparent 1px),
+          repeating-linear-gradient(135deg, rgba(202, 138, 4, 0.055) 0 1px, transparent 1px 18px);
+        background-size: 40px 40px, 40px 40px, auto;
+      }
+
+      .hero-panel {
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(254, 243, 199, 0.62) 48%, rgba(236, 253, 245, 0.74)),
+          #ffffff;
+      }
+
+      .prosperity-line {
+        background: linear-gradient(90deg, #92400e, #facc15, #047857, #92400e);
+        height: 3px;
+      }
+
+      .field-focus:focus {
+        outline: 3px solid rgba(202, 138, 4, 0.2);
+        outline-offset: 1px;
+      }
+
+      .visually-hidden-field {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+
+      .spinner {
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        border-top-color: #ffffff;
+        border-radius: 9999px;
+        animation: spin 0.75s linear infinite;
+      }
+
+      .reveal {
+        animation: reveal 0.5s ease both;
+      }
+
+      .reveal-delay-1 {
+        animation-delay: 0.06s;
+      }
+
+      .reveal-delay-2 {
+        animation-delay: 0.12s;
+      }
+
+      .reveal-delay-3 {
+        animation-delay: 0.18s;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes reveal {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .spinner,
+        .reveal {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-slate-950 antialiased">
+    <main class="page-shell min-h-screen px-4 py-5 sm:px-6 sm:py-8">
+      <div class="mx-auto w-full max-w-2xl">
+        <header class="hero-panel reveal mb-6 overflow-hidden rounded-[1.35rem] border border-amber-100 shadow-[0_24px_70px_rgba(120,53,15,0.14)]">
+          <div class="prosperity-line"></div>
+          <div class="flex items-center justify-between border-b border-amber-100/80 bg-white/52 px-5 py-4 backdrop-blur sm:px-7">
+            <div class="flex items-center gap-3">
+              <img src="BDS_logo.png" alt="BDS" class="h-14 w-14 rounded-full border border-amber-100 bg-white object-contain shadow-sm">
+              <div>
+                <p class="text-xs font-semibold uppercase text-amber-700">BDS</p>
+                <p class="text-sm font-semibold text-slate-900">Official Order</p>
+              </div>
+            </div>
+            <p class="hidden text-right text-xs font-semibold uppercase tracking-[0.22em] text-emerald-800 sm:block">Prosperity Drop</p>
+          </div>
+
+          <div class="px-5 py-8 sm:px-7 sm:py-10">
+            <p class="text-sm font-semibold text-amber-700">BDS prosperity edition</p>
+            <h1 class="mt-2 text-[3.25rem] font-black leading-none tracking-normal text-slate-950 sm:text-7xl">변덕순</h1>
+            <p class="mt-5 max-w-lg text-base leading-7 text-slate-700">
+              변덕순 공식 주문 접수 페이지입니다. 좋은 기운을 담아 배송 정보와 입금자명을 남겨주시면 확인 후 순차적으로 안내드립니다.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-slate-700">
+              <span class="rounded-full border border-amber-200 bg-white/72 px-3 py-2 text-amber-900">Good Fortune</span>
+              <span class="rounded-full border border-emerald-200 bg-white/72 px-3 py-2 text-emerald-900">Order</span>
+              <span class="rounded-full border border-amber-200 bg-white/72 px-3 py-2 text-amber-900">Delivery</span>
+            </div>
+          </div>
+        </header>
+
+        <form id="orderForm" class="space-y-5" novalidate>
+          <section class="reveal reveal-delay-1 rounded-[1.1rem] border border-amber-100 bg-white/95 p-5 shadow-sm sm:p-6" aria-labelledby="orderInfoTitle">
+            <div class="flex items-start justify-between gap-4 border-b border-amber-100 pb-4">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-amber-700">01</p>
+                <h2 id="orderInfoTitle" class="mt-1 text-xl font-bold text-slate-950">주문 정보</h2>
+              </div>
+              <p class="max-w-[12rem] text-right text-xs leading-5 text-slate-500">입금 확인에 필요한 정보를 정확히 입력해주세요.</p>
+            </div>
+
+            <div class="mt-5 space-y-5">
+              <div>
+                <label for="name" class="block text-sm font-semibold text-slate-800">이름 <span class="text-amber-700">*</span></label>
+                <input id="name" name="name" type="text" autocomplete="name" required maxlength="40" class="field-focus mt-2 block w-full rounded-xl border border-slate-200 bg-stone-50 px-4 py-3 text-base text-slate-950 transition placeholder:text-slate-400 focus:border-amber-600 focus:bg-white" placeholder="홍길동">
+              </div>
+
+              <div>
+                <label for="phone" class="block text-sm font-semibold text-slate-800">연락처 <span class="text-amber-700">*</span></label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required maxlength="20" class="field-focus mt-2 block w-full rounded-xl border border-slate-200 bg-stone-50 px-4 py-3 text-base text-slate-950 transition placeholder:text-slate-400 focus:border-amber-600 focus:bg-white" placeholder="010-1234-5678">
+                <p class="mt-2 text-xs leading-5 text-slate-500">주문 확인이 필요한 경우에만 연락드립니다.</p>
+              </div>
+
+              <div>
+                <label for="productName" class="block text-sm font-semibold text-slate-800">상품명 <span class="text-amber-700">*</span></label>
+                <input id="productName" name="productName" type="text" required maxlength="80" class="field-focus mt-2 block w-full rounded-xl border border-slate-200 bg-stone-50 px-4 py-3 text-base text-slate-950 transition placeholder:text-slate-400 focus:border-amber-600 focus:bg-white" placeholder="변덕순 상품명을 입력해주세요">
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="quantity" class="block text-sm font-semibold text-slate-800">수량 <span class="text-amber-700">*</span></label>
+                  <input id="quantity" name="quantity" type="number" min="1" max="99" step="1" required class="field-focus mt-2 block w-full rounded-xl border border-slate-200 bg-stone-50 px-4 py-3 text-base text-slate-950 transition focus:border-amber-600 focus:bg-white" value="1">
+                </div>
+
+                <div>
+                  <label for="depositorName" class="block text-sm font-semibold text-slate-800">입금자명 <span class="text-amber-700">*</span></label>
+                  <input id="depositorName" name="depositorName" type="text" required maxlength="40" class="field-focus mt-2 block w-full rounded-xl border border-slate-200 bg-stone-50 px-4 py-3 text-base text-slate-950 transition placeholder:text-slate-400 focus:border-amber-600 focus:bg-white" placeholder="입금자명">
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="reveal reveal-delay-2 rounded-[1.1rem] border border-emerald-100 bg-white/95 p-5 shadow-sm sm:p-6" aria-labelledby="deliveryInfoTitle">
+            <div class="flex items-start justify-between gap-4 border-b border-emerald-100 pb-4">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">02</p>
+                <h2 id="deliveryInfoTitle" class="mt-1 text-xl font-bold text-slate-950">배송 정보</h2>
+              </div>
+              <p class="max-w-[12rem] text-right text-xs leading-5 text-slate-500">배송 주소와 수령 방법을 입력해주세요.</p>
+            </div>
+
+            <div class="mt-5 space-y-5">
+              <div>
+                <label for="address" class="block text-sm font-semibold text-slate-800">배송 주소 <span class="text-emerald-800">*</span></label>
+                <input id="address" name="address" type="text" autocomplete="street-address" required maxlength="160" class="field-focus mt-2 block w-full rounded-xl border border-slate-200 bg-stone-50 px-4 py-3 text-base text-slate-950 transition placeholder:text-slate-400 focus:border-emerald-700 focus:bg-white" placeholder="도로명 주소와 상세 주소">
+              </div>
+
+              <div>
+                <label for="deliveryPreference" class="block text-sm font-semibold text-slate-800">배송 수령 방법 <span class="text-emerald-800">*</span></label>
+                <select id="deliveryPreference" name="deliveryPreference" required class="field-focus mt-2 block w-full rounded-xl border border-slate-200 bg-stone-50 px-4 py-3 text-base text-slate-950 transition focus:border-emerald-700 focus:bg-white">
+                  <option value="">선택해주세요</option>
+                  <option value="leave_at_door">문 앞에 두기</option>
+                  <option value="hand_directly">직접 받기</option>
+                  <option value="security_office">경비실에 맡기기</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="comments" class="block text-sm font-semibold text-slate-800">추가 요청사항 / 공동현관 비밀번호</label>
+                <textarea id="comments" name="comments" rows="3" maxlength="300" class="field-focus mt-2 block w-full resize-y rounded-xl border border-slate-200 bg-stone-50 px-4 py-3 text-base text-slate-950 transition placeholder:text-slate-400 focus:border-emerald-700 focus:bg-white" placeholder="필요한 경우에만 입력해주세요"></textarea>
+              </div>
+            </div>
+          </section>
+
+          <section class="reveal reveal-delay-3 overflow-hidden rounded-[1.1rem] border border-amber-300 bg-emerald-950 text-white shadow-[0_18px_45px_rgba(6,78,59,0.24)]" aria-labelledby="paymentInfoTitle">
+            <div class="border-b border-white/10 px-5 py-5 sm:px-6">
+              <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">03</p>
+                  <h2 id="paymentInfoTitle" class="mt-1 text-xl font-bold">입금 안내</h2>
+                  <p class="mt-2 text-sm leading-6 text-emerald-50">주문 후 아래 계좌로 입금해주세요.</p>
+                </div>
+                <button id="copyAccountButton" type="button" class="field-focus inline-flex min-h-11 items-center justify-center rounded-full bg-amber-300 px-5 py-2 text-sm font-bold text-emerald-950 transition hover:bg-amber-200 active:scale-[0.98]">
+                  계좌번호 복사
+                </button>
+              </div>
+            </div>
+            <dl class="grid gap-px bg-white/10 text-sm sm:grid-cols-3">
+              <div class="bg-emerald-950 px-5 py-4 sm:px-6">
+                <dt class="text-amber-200">은행</dt>
+                <dd class="mt-1 font-bold text-white">우리은행</dd>
+              </div>
+              <div class="bg-emerald-950 px-5 py-4 sm:px-6">
+                <dt class="text-amber-200">계좌번호</dt>
+                <dd id="accountNumberText" class="mt-1 font-bold text-white">1002 136 350149</dd>
+              </div>
+              <div class="bg-emerald-950 px-5 py-4 sm:px-6">
+                <dt class="text-amber-200">예금주</dt>
+                <dd class="mt-1 font-bold text-white">최아람</dd>
+              </div>
+            </dl>
+            <p id="copyAccountStatus" class="hidden px-5 py-4 text-sm font-semibold text-amber-100 sm:px-6" role="status" aria-live="polite"></p>
+          </section>
+
+          <div class="visually-hidden-field" aria-hidden="true">
+            <label for="website">홈페이지 URL</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+          </div>
+
+          <section class="rounded-[1.1rem] border border-amber-100 bg-white/95 p-5 shadow-sm sm:p-6" aria-labelledby="consentTitle">
+            <h2 id="consentTitle" class="text-lg font-bold text-slate-950">개인정보 수집 동의</h2>
+            <label class="mt-4 flex gap-3 text-sm leading-6 text-slate-700">
+              <input id="privacyConsent" name="privacyConsent" type="checkbox" required class="field-focus mt-1 h-4 w-4 rounded border-slate-300 text-emerald-800 focus:ring-emerald-800">
+              <span>주문 처리, 배송 안내, 입금 확인을 위해 입력한 개인정보를 수집 및 이용하는 데 동의합니다. 보관 기간은 주문 처리 완료 후 운영 정책에 따릅니다.</span>
+            </label>
+          </section>
+
+          <div id="statusMessage" class="hidden rounded-xl border px-4 py-3 text-sm leading-6" role="status" aria-live="polite"></div>
+
+          <button id="submitButton" type="submit" class="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-950 px-4 py-4 text-base font-bold text-white shadow-[0_18px_40px_rgba(6,78,59,0.22)] transition hover:bg-amber-700 hover:shadow-[0_20px_46px_rgba(146,64,14,0.24)] active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-slate-400">
+            <span id="spinner" class="spinner hidden" aria-hidden="true"></span>
+            <span id="buttonText">주문 접수하기</span>
+          </button>
+        </form>
+
+        <footer class="mx-auto mt-8 max-w-lg border-t border-slate-200 pt-5 text-center text-xs leading-5 text-slate-500">
+          접수 후 입금 확인까지 시간이 걸릴 수 있습니다. 입력한 정보가 정확하지 않으면 안내가 지연될 수 있습니다.
+        </footer>
+      </div>
+    </main>
+
+    <script>
+      const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwCMYfQ5Jw3pB7rXCIe0RIvJjCnPgwHQyNKSMegQgF6Zm6UWcAfaVYPThI6YA7H3AKm/exec";
+
+      const form = document.getElementById("orderForm");
+      const fields = form.elements;
+      const statusMessage = document.getElementById("statusMessage");
+      const submitButton = document.getElementById("submitButton");
+      const spinner = document.getElementById("spinner");
+      const buttonText = document.getElementById("buttonText");
+      const copyAccountButton = document.getElementById("copyAccountButton");
+      const copyAccountStatus = document.getElementById("copyAccountStatus");
+      const accountNumber = "1002136350149";
+
+      function createClientRequestId() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return window.crypto.randomUUID();
+        }
+
+        return "req-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+      }
+
+      function setLoading(isLoading) {
+        submitButton.disabled = isLoading;
+        spinner.classList.toggle("hidden", !isLoading);
+        buttonText.textContent = isLoading ? "접수 중..." : "주문 접수하기";
+      }
+
+      function showStatus(type, message) {
+        const styles = {
+          success: "border-emerald-200 bg-emerald-50 text-emerald-900",
+          error: "border-rose-200 bg-rose-50 text-rose-900",
+          info: "border-slate-200 bg-slate-50 text-slate-800"
+        };
+
+        statusMessage.className = "rounded-xl border px-4 py-3 text-sm leading-6 " + styles[type];
+        statusMessage.textContent = message;
+      }
+
+      async function copyText(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+
+        const temporaryInput = document.createElement("textarea");
+        temporaryInput.value = text;
+        temporaryInput.setAttribute("readonly", "");
+        temporaryInput.style.position = "fixed";
+        temporaryInput.style.top = "-9999px";
+        document.body.appendChild(temporaryInput);
+        temporaryInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(temporaryInput);
+      }
+
+      function showCopyStatus(message) {
+        copyAccountStatus.classList.remove("hidden");
+        copyAccountStatus.textContent = message;
+      }
+
+      function normalizePhone(value) {
+        return value.replace(/[^\d]/g, "");
+      }
+
+      function getPayload() {
+        return {
+          clientRequestId: createClientRequestId(),
+          name: fields.name.value.trim(),
+          phone: fields.phone.value.trim(),
+          productName: fields.productName.value.trim(),
+          quantity: Number(fields.quantity.value),
+          depositorName: fields.depositorName.value.trim(),
+          address: fields.address.value.trim(),
+          deliveryPreference: fields.deliveryPreference.value,
+          comments: fields.comments.value.trim(),
+          privacyConsent: fields.privacyConsent.checked,
+          website: fields.website.value.trim(),
+          submittedAt: new Date().toISOString(),
+          userAgent: navigator.userAgent
+        };
+      }
+
+      function validateForm(payload) {
+        const checks = [
+          { field: fields.name, valid: Boolean(payload.name), message: "이름을 입력해주세요." },
+          { field: fields.phone, valid: /^01[016789]\d{7,8}$/.test(normalizePhone(payload.phone)), message: "연락처를 올바르게 입력해주세요. 예: 010-1234-5678" },
+          { field: fields.productName, valid: Boolean(payload.productName), message: "상품명을 입력해주세요." },
+          { field: fields.quantity, valid: Number.isInteger(payload.quantity) && payload.quantity >= 1 && payload.quantity <= 99, message: "수량은 1개 이상 99개 이하로 입력해주세요." },
+          { field: fields.depositorName, valid: Boolean(payload.depositorName), message: "입금자명을 입력해주세요." },
+          { field: fields.address, valid: Boolean(payload.address), message: "배송 주소를 입력해주세요." },
+          { field: fields.deliveryPreference, valid: Boolean(payload.deliveryPreference), message: "배송 수령 방법을 선택해주세요." },
+          { field: fields.privacyConsent, valid: payload.privacyConsent, message: "개인정보 수집 및 이용에 동의해주세요." }
+        ];
+
+        if (payload.website) {
+          return { valid: false, field: null, message: "주문 접수에 실패했습니다. 잠시 후 다시 시도해주세요." };
+        }
+
+        return checks.find(function (check) {
+          return !check.valid;
+        }) || { valid: true };
+      }
+
+      function isWebhookConfigured() {
+        return WEBHOOK_URL && WEBHOOK_URL.startsWith("https://script.google.com/macros/s/") && WEBHOOK_URL.endsWith("/exec");
+      }
+
+      async function submitOrder(payload) {
+        const response = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || "ORDER_SUBMIT_FAILED");
+        }
+
+        return result;
+      }
+
+      form.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const payload = getPayload();
+        const validation = validateForm(payload);
+
+        if (!validation.valid) {
+          showStatus("error", validation.message);
+          if (validation.field) {
+            validation.field.focus();
+          }
+          return;
+        }
+
+        if (!isWebhookConfigured()) {
+          showStatus("error", "Apps Script Web App URL을 먼저 설정해주세요. order-form.html의 WEBHOOK_URL을 /exec URL로 교체해야 합니다.");
+          return;
+        }
+
+        setLoading(true);
+        showStatus("info", "주문 정보를 전송하고 있습니다.");
+
+        try {
+          const result = await submitOrder(payload);
+          form.reset();
+          fields.quantity.value = "1";
+          showStatus("success", "주문이 접수되었습니다. 주문번호 " + result.orderId + "입니다. 입금 확인 후 안내드릴게요.");
+        } catch (error) {
+          console.error(error);
+          showStatus("error", "주문 접수에 실패했습니다. 입력 내용은 유지됩니다. 잠시 후 다시 시도해주세요.");
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      copyAccountButton.addEventListener("click", async function () {
+        try {
+          await copyText(accountNumber);
+          showCopyStatus("계좌번호가 복사되었습니다: 1002 136 350149");
+        } catch (error) {
+          console.error(error);
+          showCopyStatus("복사에 실패했습니다. 계좌번호를 직접 선택해 복사해주세요.");
+        }
+      });
+    </script>
+  </body>
+</html>
